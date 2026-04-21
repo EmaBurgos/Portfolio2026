@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Emanuel Burgos — Full-Stack Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#050810;--surface:#0c1020;--border:#1a2035;
+    --accent:#4a9ef0;--accent-dim:rgba(74,158,240,0.10);
+    --text:#e4eaf5;--text-muted:#4a5570;--text-mid:#8a9ab8;
+    --font-display:'Bebas Neue',sans-serif;
+    --font-body:'Libre Baskerville',serif;
+    --font-mono:'DM Mono',monospace;
+  }
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden;cursor:none}
+  .cursor-dot{position:fixed;top:0;left:0;width:8px;height:8px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s}
+  .cursor-ring{position:fixed;top:0;left:0;width:36px;height:36px;border:1px solid rgba(74,158,240,0.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .3s,height .3s,border-color .3s}
+  body:has(a:hover) .cursor-dot,body:has(button:hover) .cursor-dot{width:14px;height:14px}
+  body:has(a:hover) .cursor-ring,body:has(button:hover) .cursor-ring{width:56px;height:56px;border-color:var(--accent)}
+  #canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.5}
+  .container{max-width:1100px;margin:0 auto;padding:0 2rem;position:relative;z-index:2}
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.5rem 0;border-bottom:1px solid transparent;transition:border-color .4s,background .4s}
+  nav.scrolled{background:rgba(5,8,16,.93);backdrop-filter:blur(16px);border-color:var(--border)}
+  .nav-inner{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto;padding:0 2rem}
+  .nav-logo{font-family:var(--font-mono);font-size:.8rem;color:var(--accent);letter-spacing:.08em;text-decoration:none}
+  .nav-links{display:flex;gap:2.5rem;list-style:none}
+  .nav-links a{font-family:var(--font-mono);font-size:.72rem;color:var(--text-muted);text-decoration:none;letter-spacing:.1em;text-transform:uppercase;transition:color .2s}
+  .nav-links a:hover{color:var(--accent)}
+  #hero{min-height:100vh;padding:8rem 0 5rem;position:relative;z-index:2}
+  .hero-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:grid;grid-template-columns:1fr auto;align-items:center;gap:4rem}
+  .hero-eyebrow{font-family:var(--font-mono);font-size:.72rem;color:var(--accent);letter-spacing:.25em;text-transform:uppercase;margin-bottom:1.5rem;opacity:0;transform:translateY(12px);animation:fadeUp .7s ease .2s forwards}
+  
+  /* ── NEON TITLE ── */
+  .hero-name{
+    font-family:var(--font-display);
+    font-size:clamp(3rem,8vw,6.5rem);
+    line-height:.92;
+    letter-spacing:.02em;
+    color:#e4eaf5;
+    opacity:0;
+    transform:translateY(24px);
+    animation:fadeUp .9s ease .4s forwards;
+  }
+  .hero-name .neon-line {
+    display:block;
+    color:#ffffff;
+    text-shadow:
+      0 0 1px #fff,
+      0 0 3px #fff,
+      0 0 6px var(--accent),
+      0 0 12px var(--accent),
+      0 0 20px var(--accent),
+      0 0 30px rgba(74,158,240,0.5);
+    animation: neonFlicker 4.5s ease-in-out infinite;
+  }
+  .hero-name .accent-word{
+    color:#4ac8ff;
+    display:block;
+    text-shadow:
+      0 0 1px #fff,
+      0 0 3px #4ac8ff,
+      0 0 7px #4a9ef0,
+      0 0 15px #4a9ef0,
+      0 0 25px rgba(74,158,240,0.6),
+      0 0 40px rgba(74,158,240,0.3);
+    animation: neonFlicker 4.5s ease-in-out 0.3s infinite;
+  }
+
+  @keyframes neonFlicker {
+    0%,19%,21%,23%,25%,54%,56%,100% {
+      opacity: 1;
+      filter: brightness(1);
+    }
+    20%,24%,55% {
+      opacity: 0.88;
+      filter: brightness(0.85);
+    }
+  }
+  /* ── END NEON ── */
+
+  .hero-title{font-family:var(--font-body);font-style:italic;font-size:clamp(1rem,2.5vw,1.3rem);color:var(--text-mid);margin-top:1.8rem;max-width:560px;line-height:1.65;opacity:0;transform:translateY(16px);animation:fadeUp .8s ease .65s forwards}
+  .hero-cta{display:flex;gap:1rem;margin-top:3rem;opacity:0;transform:translateY(14px);animation:fadeUp .7s ease .9s forwards}
+  .btn-primary{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;padding:.9rem 2rem;background:var(--accent);color:#050810;border:none;text-decoration:none;cursor:none;transition:background .2s,transform .2s}
+  .btn-primary:hover{background:#6ab4f8;transform:translateY(-2px)}
+  .btn-ghost{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;padding:.9rem 2rem;background:transparent;color:var(--text-muted);border:1px solid var(--border);text-decoration:none;cursor:none;transition:border-color .2s,color .2s,transform .2s}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+  .hero-photo-wrap{opacity:0;transform:translateY(20px);animation:fadeUp .9s ease .6s forwards;flex-shrink:0}
+  .photo-container{position:relative;width:260px;height:260px}
+  .photo-container::before{content:'';position:absolute;inset:-4px;border:1px solid rgba(74,158,240,.25);pointer-events:none;animation:ringPulse 3s ease-in-out infinite;z-index:5}
+  @keyframes ringPulse{0%,100%{border-color:rgba(74,158,240,.12)}50%{border-color:rgba(74,158,240,.5);box-shadow:0 0 22px rgba(74,158,240,.12)}}
+
+  #photoMain,#photoDog{
+    position:absolute;top:0;left:0;width:260px;height:260px;
+    object-fit:cover;display:block;
+  }
+  #photoMain{z-index:2;opacity:0;transition:opacity 1.1s cubic-bezier(.4,0,.2,1)}
+  #photoDog{z-index:1;opacity:0;transition:opacity 1.1s cubic-bezier(.4,0,.2,1)}
+
+  .photo-shimmer{
+    position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:linear-gradient(105deg,transparent 30%,rgba(74,158,240,.22) 50%,transparent 70%);
+    background-size:250% 100%;background-position:200% 0;
+    opacity:0;
+  }
+  .photo-shimmer.run{
+    animation:shimmerSweep .9s ease forwards;
+  }
+  @keyframes shimmerSweep{
+    0%{opacity:1;background-position:200% 0}
+    100%{opacity:0;background-position:-100% 0}
+  }
+
+  .photo-placeholder{width:260px;height:260px;background:linear-gradient(135deg,#0c1428,#0e1e3a);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;color:var(--text-muted);border:1px solid var(--border);position:absolute;top:0;left:0;z-index:3}
+  .photo-placeholder svg{width:48px;height:48px;opacity:.3}
+  .photo-placeholder p{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;opacity:.4;text-align:center;padding:0 1rem}
+
+  .corner-badge{
+    position:absolute;bottom:-14px;right:-14px;
+    width:52px;height:52px;z-index:10;
+    object-fit:cover;
+    border:none;box-shadow:none;
+    background:transparent;
+    opacity:0;transform:scale(.6) rotate(-8deg);
+    transition:opacity .5s ease, transform .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  .corner-badge.show{opacity:1;transform:scale(1) rotate(0deg)}
+
+  @keyframes photoBounce{
+    0%{transform:scale(1)}
+    30%{transform:scale(1.045)}
+    55%{transform:scale(.97)}
+    75%{transform:scale(1.018)}
+    90%{transform:scale(.995)}
+    100%{transform:scale(1)}
+  }
+  .photo-container.bounce{animation:photoBounce .55s cubic-bezier(.36,.07,.19,.97) forwards}
+
+  .cat-label{
+    position:absolute;top:-10px;left:-10px;z-index:20;
+    font-family:var(--font-mono);font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;
+    color:#c9b0ff;background:var(--bg);border:1px solid rgba(160,100,255,.5);
+    padding:.2rem .5rem;
+    opacity:0;transform:translateY(4px);
+    transition:opacity .4s ease,transform .4s ease;
+    pointer-events:none;
+  }
+  .cat-label.show{opacity:1;transform:translateY(0)}
+
+  .dog-label{
+    position:absolute;top:-10px;left:-10px;z-index:20;
+    font-family:var(--font-mono);font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;
+    color:#ff8fab;background:var(--bg);border:1px solid rgba(255,77,128,.5);
+    padding:.2rem .5rem;
+    opacity:0;transform:translateY(4px);
+    transition:opacity .4s ease,transform .4s ease;
+    pointer-events:none;
+  }
+  .dog-label.show{opacity:1;transform:translateY(0)}
+
+  .hero-scroll-hint{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:0;animation:fadeIn 1s ease 1.5s forwards}
+  .scroll-label{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase}
+  .scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--accent),transparent);animation:scrollPulse 2s ease-in-out infinite}
+  section{padding:7rem 0;position:relative;z-index:2}
+  .section-label{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem}
+  .section-title{font-family:var(--font-display);font-size:clamp(2.8rem,6vw,5rem);line-height:1;color:var(--text);margin-bottom:3.5rem}
+  .divider{width:100%;height:1px;background:var(--border);position:relative;z-index:2}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+  .about-text p{font-size:1rem;line-height:1.85;color:var(--text-mid);margin-bottom:1.2rem}
+  .about-text p:first-child{color:var(--text)}
+  .about-text strong{color:var(--accent);font-weight:400}
+  .aside-card{border:1px solid var(--border);padding:1.8rem;margin-bottom:1.2rem;transition:border-color .3s}
+  .aside-card:hover{border-color:rgba(74,158,240,.3)}
+  .aside-card-label{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:.6rem}
+  .aside-card-value{font-size:.95rem;color:var(--text-mid);line-height:1.6}
+  .aside-card-value a{color:var(--text-mid);text-decoration:none;transition:color .2s}
+  .aside-card-value a:hover{color:var(--accent)}
+  .skills-layout{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+  .skill-block{border:1px solid var(--border);padding:2rem;transition:border-color .3s,background .3s;position:relative;overflow:hidden}
+  .skill-block::before{content:'';position:absolute;top:0;left:0;width:0;height:2px;background:var(--accent);transition:width .4s ease}
+  .skill-block:hover::before{width:100%}
+  .skill-block:hover{border-color:rgba(74,158,240,.2);background:var(--accent-dim)}
+  .skill-block-title{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.2rem}
+  .skill-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+  .skill-tag{font-family:var(--font-mono);font-size:.72rem;color:var(--text-muted);padding:.3rem .7rem;border:1px solid var(--border);transition:color .2s,border-color .2s}
+  .skill-block:hover .skill-tag{color:var(--text-mid);border-color:rgba(74,158,240,.18)}
+  .exp-list{display:flex;flex-direction:column}
+  .exp-item{display:grid;grid-template-columns:200px 1fr;gap:3rem;padding:2.5rem 0;border-bottom:1px solid var(--border);transition:background .3s;cursor:default}
+  .exp-item:first-child{border-top:1px solid var(--border)}
+  .exp-item:hover{background:rgba(255,255,255,.012)}
+  .exp-period{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.12em;color:var(--text-muted);text-transform:uppercase;line-height:1.6}
+  .exp-role{font-family:var(--font-display);font-size:1.6rem;letter-spacing:.04em;color:var(--text);margin-bottom:.3rem;line-height:1.1}
+  .exp-company{font-family:var(--font-mono);font-size:.72rem;color:var(--accent);letter-spacing:.1em;margin-bottom:1.2rem;text-transform:uppercase}
+  .exp-desc{font-size:.9rem;line-height:1.85;color:var(--text-muted);max-width:680px}
+  .exp-desc strong{color:var(--text-mid);font-weight:400}
+  .exp-tech{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.2rem}
+  .exp-tech-tag{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.08em;color:var(--text-muted);border:1px solid var(--border);padding:.2rem .6rem}
+  #contact{padding-bottom:8rem}
+  .contact-inner{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:start}
+  .contact-tagline{font-family:var(--font-display);font-size:clamp(2.5rem,5vw,4.2rem);line-height:1.05;color:var(--text);margin-bottom:1.5rem}
+  .contact-tagline span{color:var(--accent)}
+  .contact-sub{font-size:.9rem;color:var(--text-muted);line-height:1.8;font-style:italic}
+  .contact-links{display:flex;flex-direction:column;gap:1rem;padding-top:.5rem}
+  .contact-link-item{display:flex;align-items:center;gap:1.2rem;padding:1.2rem 1.5rem;border:1px solid var(--border);text-decoration:none;transition:border-color .3s,background .3s}
+  .contact-link-item:hover{border-color:rgba(74,158,240,.35);background:var(--accent-dim)}
+  .contact-link-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
+  .contact-link-icon svg{width:18px;height:18px}
+  .contact-link-label{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.2rem}
+  .contact-link-value{font-size:.9rem;color:var(--text-mid);transition:color .2s}
+  .contact-link-item:hover .contact-link-value{color:var(--text)}
+  footer{position:relative;z-index:2;border-top:1px solid var(--border);padding:2rem 0}
+  .footer-inner{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto;padding:0 2rem}
+  .footer-copy{font-family:var(--font-mono);font-size:.62rem;color:var(--text-muted);letter-spacing:.1em}
+  .footer-copy span{color:var(--accent)}
+  .footer-status{display:flex;align-items:center;gap:.5rem;font-family:var(--font-mono);font-size:.62rem;color:var(--text-muted);letter-spacing:.1em}
+  .status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+  @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{to{opacity:1}}
+  @keyframes scrollPulse{0%,100%{opacity:.4}50%{opacity:1}}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
+  .reveal.visible{opacity:1;transform:translateY(0)}
+  .reveal-delay-1{transition-delay:.1s}
+  .reveal-delay-2{transition-delay:.2s}
+  .marquee-wrapper{overflow:hidden;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:.9rem 0;background:var(--surface);position:relative;z-index:2}
+  .marquee-track{display:flex;animation:marquee 28s linear infinite;white-space:nowrap}
+  .marquee-item{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);padding:0 2.5rem;flex-shrink:0}
+  .marquee-item span{color:var(--accent);margin-right:.5rem}
+  @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media(max-width:900px){
+    .hero-inner{grid-template-columns:1fr}
+    .hero-photo-wrap{display:none}
+    .about-grid{grid-template-columns:1fr;gap:3rem}
+    .skills-layout{grid-template-columns:1fr}
+    .exp-item{grid-template-columns:1fr;gap:.5rem}
+    .contact-inner{grid-template-columns:1fr;gap:3rem}
+    .nav-links{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<canvas id="canvas"></canvas>
+
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">EB_</a>
+    <ul class="nav-links">
+      <li><a href="#about">Sobre mí</a></li>
+      <li><a href="#skills">Stack</a></li>
+      <li><a href="#experience">Experiencia</a></li>
+      <li><a href="#contact">Contacto</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <p class="hero-eyebrow">// Buenos Aires, Argentina</p>
+      <h1 class="hero-name">
+        <span class="neon-line">EMANUEL</span>
+        <span class="accent-word">BURGOS</span>
+      </h1>
+      <p class="hero-title">Desarrollador Full-Stack con foco en soluciones robustas,<br />interfaces que importan y código que perdura.</p>
+      <div class="hero-cta">
+        <a href="#experience" class="btn-primary">Ver experiencia</a>
+        <a href="#contact" class="btn-ghost">Contactar</a>
+      </div>
+    </div>
+    <div class="hero-photo-wrap">
+      <div class="photo-container" id="photoContainer">
+        <img id="photoDog" src="zeus.jpg" alt="Zeus" />
+        <img id="photoCat" src="chini.jpg" alt="Chini" style="position:absolute;top:0;left:0;width:260px;height:260px;object-fit:cover;display:block;z-index:0;opacity:0;transition:opacity 1.1s cubic-bezier(.4,0,.2,1)" />
+        <img id="photoMain" src="foto.jpg" alt="Emanuel Burgos" />
+        <div class="photo-shimmer" id="photoShimmer"></div>
+        <div class="photo-placeholder" id="photoPlaceholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/>
+          </svg>
+          <p>Colocá tu foto<br/>como "foto.jpg"</p>
+        </div>
+        <img class="corner-badge" id="badgeFlag" src="argentina.png" alt="🇦🇷" />
+        <img class="corner-badge" id="badgeHeart" src="corazon.png" alt="♥" />
+        <div class="dog-label" id="dogLabel">🐾 Zeus</div>
+        <div class="cat-label" id="catLabel">🐱 Chini</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll-hint">
+    <span class="scroll-label">scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<div class="marquee-wrapper">
+  <div class="marquee-track" id="marqueeTrack"></div>
+</div>
+
+<section id="about">
+  <div class="container">
+    <p class="section-label reveal">01 — Sobre mí</p>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>Soy desarrollador Full-Stack con experiencia en la construcción de aplicaciones web escalables desde cero, tanto en el backend como en la interfaz. Me especializo en soluciones que combinan <strong>solidez técnica</strong> con experiencia de usuario cuidada.</p>
+        <p>Aplico Programación Orientada a Objetos, patrones de diseño y buenas prácticas para lograr código limpio, mantenible y eficiente. Trabajo con metodologías ágiles (Scrum), control de versiones en Git y entornos dockerizados en producción.</p>
+        <p>Me considero una persona <strong>disciplinada, autodidacta</strong> y orientada a la mejora continua. Me motiva aprender constantemente y construir productos que realmente aporten valor.</p>
+        <p style="color:var(--text-muted);font-size:.88rem">Fuera del código: deporte, animales, y un estilo de vida vegetariano 🌱</p>
+      </div>
+      <div class="about-aside reveal reveal-delay-2">
+        <div class="aside-card">
+          <p class="aside-card-label">Ubicación</p>
+          <p class="aside-card-value">Buenos Aires, Argentina</p>
+        </div>
+        <div class="aside-card">
+          <p class="aside-card-label">Email</p>
+          <p class="aside-card-value"><a href="mailto:emaburgos17@hotmail.com">emaburgos17@hotmail.com</a></p>
+        </div>
+        <div class="aside-card">
+          <p class="aside-card-label">GitHub</p>
+          <p class="aside-card-value"><a href="https://github.com/EmaBurgos" target="_blank" rel="noopener">github.com/EmaBurgos</a></p>
+        </div>
+        <div class="aside-card">
+          <p class="aside-card-label">Disponibilidad</p>
+          <p class="aside-card-value" style="color:var(--accent)">● Abierto a oportunidades</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<section id="skills">
+  <div class="container">
+    <p class="section-label reveal">02 — Stack tecnológico</p>
+    <h2 class="section-title reveal">Tecnologías</h2>
+    <div class="skills-layout">
+      <div class="skill-block reveal">
+        <p class="skill-block-title">Backend</p>
+        <div class="skill-tags">
+          <span class="skill-tag">PHP</span><span class="skill-tag">Symfony</span><span class="skill-tag">Laravel</span>
+          <span class="skill-tag">Node.js</span><span class="skill-tag">Python</span><span class="skill-tag">APIs REST</span>
+          <span class="skill-tag">PostgreSQL</span><span class="skill-tag">MySQL</span><span class="skill-tag">MongoDB</span><span class="skill-tag">POO</span>
+        </div>
+      </div>
+      <div class="skill-block reveal reveal-delay-1">
+        <p class="skill-block-title">Frontend</p>
+        <div class="skill-tags">
+          <span class="skill-tag">React</span><span class="skill-tag">React Native</span><span class="skill-tag">Vue.js</span>
+          <span class="skill-tag">Next.js</span><span class="skill-tag">TypeScript</span><span class="skill-tag">JavaScript</span>
+          <span class="skill-tag">Tailwind</span><span class="skill-tag">Sass</span><span class="skill-tag">Redux</span><span class="skill-tag">Material UI</span>
+        </div>
+      </div>
+      <div class="skill-block reveal reveal-delay-2">
+        <p class="skill-block-title">Testing &amp; DevOps</p>
+        <div class="skill-tags">
+          <span class="skill-tag">PHPUnit</span><span class="skill-tag">Jest</span><span class="skill-tag">React Testing Library</span>
+          <span class="skill-tag">Docker</span><span class="skill-tag">CI/CD</span><span class="skill-tag">Linux</span>
+          <span class="skill-tag">Git</span><span class="skill-tag">Postman</span>
+        </div>
+      </div>
+      <div class="skill-block reveal reveal-delay-1" style="grid-column:1/-1">
+        <p class="skill-block-title">Datos &amp; Otros</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Power BI</span><span class="skill-tag">ETL</span><span class="skill-tag">ElasticSearch</span>
+          <span class="skill-tag">Scrum / Agile</span><span class="skill-tag">Jira</span><span class="skill-tag">IA / ML Exploration</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<section id="experience">
+  <div class="container">
+    <p class="section-label reveal">03 — Trayectoria</p>
+    <h2 class="section-title reveal">Experiencia</h2>
+    <div class="exp-list">
+      <div class="exp-item reveal">
+        <div class="exp-left"><p class="exp-period">2022 — Presente<br>Full-Time</p></div>
+        <div class="exp-right">
+          <h3 class="exp-role">Full-Stack Developer</h3>
+          <p class="exp-company">Logística &amp; Operaciones</p>
+          <p class="exp-desc">Desarrollo y optimización de soluciones logísticas aplicando <strong>POO y patrones de diseño</strong> para código limpio, escalable y mantenible. Construcción de interfaces interactivas con <strong>React y React Native</strong> en múltiples plataformas. Trabajo en entorno ágil bajo Scrum con revisiones de código, CI/CD pipelines y despliegues continuos en producción. Gestión de proyectos mediante Jira.</p>
+          <div class="exp-tech">
+            <span class="exp-tech-tag">PHP (Symfony)</span><span class="exp-tech-tag">React</span><span class="exp-tech-tag">React Native</span>
+            <span class="exp-tech-tag">PostgreSQL</span><span class="exp-tech-tag">Docker</span><span class="exp-tech-tag">Linux</span>
+            <span class="exp-tech-tag">PHPUnit</span><span class="exp-tech-tag">Jest</span><span class="exp-tech-tag">CI/CD</span>
+          </div>
+        </div>
+      </div>
+      <div class="exp-item reveal">
+        <div class="exp-left"><p class="exp-period">Anterior<br>Full-Time</p></div>
+        <div class="exp-right">
+          <h3 class="exp-role">Full-Stack Developer</h3>
+          <p class="exp-company">Laboratorio Clínico</p>
+          <p class="exp-desc">Automatización de tareas para mejorar eficiencia operativa, reduciendo tiempos de procesamiento y errores manuales. <strong>Migración y modernización</strong> de sistemas garantizando estabilidad y escalabilidad. Colaboración con analistas de datos usando <strong>Power BI, ETL y ElasticSearch</strong> para métricas clave. Exploración de <strong>inteligencia artificial</strong> para optimización de procesos clínicos.</p>
+          <div class="exp-tech">
+            <span class="exp-tech-tag">Python</span><span class="exp-tech-tag">PHP (Laravel)</span><span class="exp-tech-tag">Vue.js</span>
+            <span class="exp-tech-tag">Material UI</span><span class="exp-tech-tag">PostgreSQL</span><span class="exp-tech-tag">NoSQL</span>
+            <span class="exp-tech-tag">Power BI</span><span class="exp-tech-tag">ETL</span><span class="exp-tech-tag">ElasticSearch</span><span class="exp-tech-tag">Docker</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<section id="contact">
+  <div class="container">
+    <p class="section-label reveal">04 — Contacto</p>
+    <div class="contact-inner">
+      <div class="reveal">
+        <h2 class="contact-tagline">¿Construimos<br>algo <span>juntos</span>?</h2>
+        <p class="contact-sub">Abierto a roles full-time, proyectos freelance<br>o simplemente una buena conversación técnica.</p>
+      </div>
+      <div class="contact-links reveal reveal-delay-2">
+        <a href="mailto:emaburgos17@hotmail.com" class="contact-link-item">
+          <div class="contact-link-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div class="contact-link-content">
+            <p class="contact-link-label">Email</p>
+            <p class="contact-link-value">emaburgos17@hotmail.com</p>
+          </div>
+        </a>
+        <a href="https://github.com/EmaBurgos" target="_blank" rel="noopener" class="contact-link-item">
+          <div class="contact-link-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+            </svg>
+          </div>
+          <div class="contact-link-content">
+            <p class="contact-link-label">GitHub</p>
+            <p class="contact-link-value">github.com/EmaBurgos</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <p class="footer-copy">© 2025 <span>Emanuel Burgos</span> — Buenos Aires, AR</p>
+    <div class="footer-status"><div class="status-dot"></div>Disponible para nuevos proyectos</div>
+  </div>
+</footer>
+
+<script>
+// ── CURSOR ──────────────────────────────────────────────
+const dot=document.getElementById('cursorDot'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+(function ac(){dot.style.left=mx+'px';dot.style.top=my+'px';rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(ac)})();
+
+// ── CONSTELLATION ───────────────────────────────────────
+const cv=document.getElementById('canvas'),cx=cv.getContext('2d');
+let W,H;
+function rsz(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight}
+rsz();window.addEventListener('resize',rsz);
+const pts=Array.from({length:90},()=>({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.5+.5}));
+let mX=window.innerWidth/2,mY=window.innerHeight/2;
+document.addEventListener('mousemove',e=>{mX=e.clientX;mY=e.clientY});
+(function dc(){
+  cx.clearRect(0,0,W,H);
+  pts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+    const d=Math.hypot(mX-p.x,mY-p.y);
+    if(d<200){p.vx+=(mX-p.x)*.00008;p.vy+=(mY-p.y)*.00008}
+    if(Math.hypot(p.vx,p.vy)>.8){p.vx*=.98;p.vy*=.98}
+  });
+  for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+    const d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);
+    if(d<140){cx.strokeStyle=`rgba(74,158,240,${(1-d/140)*.28})`;cx.lineWidth=.5;cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);cx.stroke()}
+  }
+  pts.forEach(p=>{
+    const d=Math.hypot(mX-p.x,mY-p.y);
+    if(d<180){cx.strokeStyle=`rgba(74,158,240,${(1-d/180)*.45})`;cx.lineWidth=.8;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(mX,mY);cx.stroke()}
+    cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle='rgba(74,158,240,0.6)';cx.fill()
+  });
+  requestAnimationFrame(dc)
+})();
+
+// ── NAV ─────────────────────────────────────────────────
+const nb=document.getElementById('navbar');
+window.addEventListener('scroll',()=>nb.classList.toggle('scrolled',scrollY>40));
+
+// ── REVEAL ──────────────────────────────────────────────
+const ro=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// ── MARQUEE ─────────────────────────────────────────────
+const techs=['React','Node.js','PHP','Symfony','Laravel','Python','Vue.js','TypeScript','PostgreSQL','Docker','PHPUnit','Jest','CI/CD','React Native','ElasticSearch','Power BI','Next.js','Redux','MongoDB','Tailwind','Scrum'];
+const tr=document.getElementById('marqueeTrack');
+[...techs,...techs].forEach(t=>{const s=document.createElement('span');s.className='marquee-item';s.innerHTML=`<span>✦</span>${t}`;tr.appendChild(s)});
+
+// ── PHOTO TRANSITION ─────────────────────────────────────
+(function(){
+  const photoMain   = document.getElementById('photoMain');
+  const photoDog    = document.getElementById('photoDog');
+  const photoCat    = document.getElementById('photoCat');
+  const shimmer     = document.getElementById('photoShimmer');
+  const placeholder = document.getElementById('photoPlaceholder');
+  const badgeFlag   = document.getElementById('badgeFlag');
+  const badgeHeart  = document.getElementById('badgeHeart');
+  const dogLabel    = document.getElementById('dogLabel');
+  const catLabel    = document.getElementById('catLabel');
+  const container   = document.getElementById('photoContainer');
+
+  const loaded = { main: false, dog: false, cat: false };
+  let currentSlide = 0;
+  let timer = null;
+
+  const DURATIONS = [5200, 3800, 3800];
+
+  function bounce() {
+    container.classList.remove('bounce');
+    void container.offsetWidth;
+    container.classList.add('bounce');
+    container.addEventListener('animationend', () => container.classList.remove('bounce'), { once: true });
+  }
+
+  function runShimmer(cb) {
+    shimmer.classList.remove('run');
+    void shimmer.offsetWidth;
+    shimmer.classList.add('run');
+    setTimeout(() => { shimmer.classList.remove('run'); cb(); }, 480);
+  }
+
+  function setBadge(which) {
+    badgeFlag.classList.remove('show');
+    badgeHeart.classList.remove('show');
+    setTimeout(() => {
+      (which === 'flag' ? badgeFlag : badgeHeart).classList.add('show');
+    }, 200);
+  }
+
+  function hideAllLabels() {
+    dogLabel.classList.remove('show');
+    catLabel.classList.remove('show');
+  }
+
+  function showSlide(idx) {
+    const layers = [photoMain, photoDog, photoCat];
+    const checks = [loaded.main, loaded.dog, loaded.cat];
+    if (!checks[idx]) {
+      goNext(idx);
+      return;
+    }
+
+    runShimmer(() => {
+      layers.forEach((l, i) => { l.style.opacity = i === idx ? '1' : '0'; });
+      hideAllLabels();
+      if (idx === 0) { setBadge('flag'); }
+      else if (idx === 1) { dogLabel.classList.add('show'); setBadge('heart'); }
+      else if (idx === 2) { catLabel.classList.add('show'); setBadge('heart'); }
+      bounce();
+      currentSlide = idx;
+      timer = setTimeout(() => goNext(idx), DURATIONS[idx]);
+    });
+  }
+
+  function goNext(from) {
+    const avail = [loaded.main, loaded.dog, loaded.cat];
+    let next = (from + 1) % 3;
+    for (let i = 0; i < 3; i++) {
+      if (avail[next]) break;
+      next = (next + 1) % 3;
+    }
+    if (next === from) return;
+    showSlide(next);
+  }
+
+  function tryStart() {
+    if (loaded.main && timer === null) {
+      timer = setTimeout(() => goNext(0), 4800);
+    }
+  }
+
+  photoMain.addEventListener('load', function() {
+    loaded.main = true;
+    placeholder.style.display = 'none';
+    photoMain.style.opacity = '1';
+    setBadge('flag');
+    currentSlide = 0;
+    tryStart();
+  });
+  photoMain.addEventListener('error', function() {
+    const oc = document.createElement('canvas'); oc.width=240; oc.height=240;
+    const c = oc.getContext('2d');
+    const g = c.createLinearGradient(0,0,240,240);
+    g.addColorStop(0,'#0d1a2e'); g.addColorStop(1,'#0a1526');
+    c.fillStyle=g; c.fillRect(0,0,240,240);
+    c.fillStyle='#1a3050'; c.beginPath(); c.arc(120,112,72,0,Math.PI*2); c.fill();
+    c.fillStyle='#060e1c'; c.beginPath(); c.arc(120,90,68,Math.PI,0); c.fill(); c.fillRect(52,72,136,24);
+    c.fillStyle='#4a9ef0'; c.fillRect(96,104,14,10); c.fillRect(130,104,14,10);
+    c.fillStyle='#2a5a8a'; c.fillRect(118,120,4,8);
+    c.fillStyle='#4a9ef0'; c.fillRect(108,136,24,4);
+    photoMain.src = oc.toDataURL();
+  });
+
+  photoDog.addEventListener('load', () => { loaded.dog = true; tryStart(); });
+  photoDog.addEventListener('error', () => { loaded.dog = false; });
+  photoCat.addEventListener('load', () => { loaded.cat = true; tryStart(); });
+  photoCat.addEventListener('error', () => { loaded.cat = false; });
+
+  [
+    [photoMain, 'main'], [photoDog, 'dog'], [photoCat, 'cat']
+  ].forEach(([el, key]) => {
+    if (el.complete) {
+      if (el.naturalWidth) el.dispatchEvent(new Event('load'));
+      else el.dispatchEvent(new Event('error'));
+    }
+  });
+})();
+</script>
+</body>
+</html>
